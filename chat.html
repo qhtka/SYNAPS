@@ -11,12 +11,44 @@
       font-family: 'Helvetica Neue', sans-serif;
       padding: 40px;
     }
-    .chat-box {
-      max-width: 600px;
+    .chat-container {
+      display: flex;
+      gap: 20px;
+      max-width: 1200px;
       margin: auto;
+    }
+    .friends-list {
+      width: 250px;
       border: 1px solid #000;
       padding: 20px;
       background: #f8f8f8;
+    }
+    .friend-item {
+      padding: 10px;
+      margin: 5px 0;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+    .friend-item:hover {
+      background: #eee;
+    }
+    .friend-item.active {
+      background: #000;
+      color: #fff;
+    }
+    .chat-box {
+      flex: 1;
+      border: 1px solid #000;
+      padding: 20px;
+      background: #f8f8f8;
+      display: flex;
+      flex-direction: column;
+      height: 600px;
+    }
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
     }
     .message {
       margin: 10px 0;
@@ -36,7 +68,7 @@
     }
     .input-area {
       display: flex;
-      margin-top: 20px;
+      gap: 10px;
     }
     .input-area input {
       flex: 1;
@@ -51,139 +83,218 @@
       border: none;
       cursor: pointer;
     }
-    .friend-btn {
-      background-color: #ddd;
-      border: none;
-      padding: 10px 15px;
-      cursor: pointer;
-      border-radius: 5px;
-      font-weight: bold;
+    .add-friend {
+      margin-bottom: 20px;
     }
-    .friend-btn.active {
+    .add-friend input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+    }
+    .add-friend button {
+      width: 100%;
+      padding: 8px;
       background-color: black;
       color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .timestamp {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
     }
   </style>
 </head>
 <body>
-  <div style="margin-bottom: 20px;">
-    <input type="text" id="newFriendName" placeholder="Enter friend's name" style="padding: 8px; width: 200px;">
-    <button id="addFriendBtn" class="friend-btn">Add Friend</button>
-  </div>
-  <h1>1:1 Chat</h1>
-  <div id="friendList" style="margin-bottom: 20px; display: flex; gap: 10px;">
-    <button class="friend-btn" data-friend="emily">Emily</button>
-    <button class="friend-btn" data-friend="john">John</button>
-  </div>
-  <div class="chat-box" id="chatBox">
-    <div class="message received">Hi there! 😊</div>
-    <div class="message sent">Hey! What's up? 👋</div>
+  <header>
+    <div class="logo">SYNAPS</div>
+    <nav>
+      <a href="/">Home</a>
+      <a href="explore.html">Explore</a>
+      <a href="chat.html">Chat</a>
+      <div id="userInfo" class="user-info">
+        <span id="userNickname"></span>
+        <button onclick="logout()">로그아웃</button>
+      </div>
+    </nav>
+  </header>
 
-    <div class="input-area">
-      <input type="text" placeholder="Type your message...">
-      <button>Send</button>
+  <div class="chat-container">
+    <div class="friends-list">
+      <div class="add-friend">
+        <input type="text" id="friendSearch" placeholder="친구 검색...">
+        <button onclick="searchFriend()">친구 찾기</button>
+      </div>
+      <div id="friendsList"></div>
+    </div>
+    <div class="chat-box">
+      <div id="messages" class="messages"></div>
+      <div class="input-area">
+        <input type="text" id="messageInput" placeholder="메시지를 입력하세요...">
+        <button onclick="sendMessage()">전송</button>
+      </div>
     </div>
   </div>
-</body>
-<script>
-  document.addEventListener("DOMContentLoaded", () => {
+
+  <script>
     const socket = io();
-    const sendButton = document.querySelector("button");
-    const inputField = document.querySelector("input");
-    const chatBox = document.getElementById("chatBox");
-    const inputArea = document.querySelector(".input-area");
+    let currentUser = null;
+    let currentFriend = null;
+    const messagesDiv = document.getElementById('messages');
+    const messageInput = document.getElementById('messageInput');
+    const friendsList = document.getElementById('friendsList');
 
-    let currentFriend = "emily";
-    let friends = ["emily", "john"];
-
-    function renderFriendButtons() {
-      const friendListDiv = document.getElementById("friendList");
-      friendListDiv.innerHTML = "";
-      friends.forEach(friend => {
-        const button = document.createElement("button");
-        button.classList.add("friend-btn");
-        button.dataset.friend = friend;
-        button.textContent = friend.charAt(0).toUpperCase() + friend.slice(1);
-        if (friend === currentFriend) button.classList.add("active");
-        button.addEventListener("click", () => setActiveFriend(friend));
-        friendListDiv.appendChild(button);
-      });
-    }
-
-    function loadMessages(friend) {
-      const saved = localStorage.getItem("chat_" + friend);
-      const messages = saved ? JSON.parse(saved) : [];
-      const chatMessages = messages.map(msg => {
-        const div = document.createElement("div");
-        div.classList.add("message", msg.type);
-        div.textContent = msg.text;
-        return div;
-      });
-      chatBox.innerHTML = "";
-      chatMessages.forEach(msg => chatBox.appendChild(msg));
-      chatBox.appendChild(inputArea);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    }
-
-    function saveMessage(friend, text, type) {
-      const saved = localStorage.getItem("chat_" + friend);
-      const messages = saved ? JSON.parse(saved) : [];
-      messages.push({ text, type });
-      localStorage.setItem("chat_" + friend, JSON.stringify(messages));
-    }
-
-    // WebSocket 이벤트 리스너
-    socket.on('chat message', (msg) => {
-      const newMessage = document.createElement("div");
-      newMessage.classList.add("message", "received");
-      newMessage.textContent = msg;
-      chatBox.insertBefore(newMessage, inputArea);
-      chatBox.scrollTop = chatBox.scrollHeight;
-    });
-
-    sendButton.addEventListener("click", () => {
-      const text = inputField.value.trim();
-      if (text !== "") {
-        const newMessage = document.createElement("div");
-        newMessage.classList.add("message", "sent");
-        newMessage.textContent = text;
-        chatBox.insertBefore(newMessage, inputArea);
-        inputField.value = "";
-        chatBox.scrollTop = chatBox.scrollHeight;
+    // 로그인 상태 확인
+    async function checkLoginStatus() {
+      try {
+        const response = await fetch('/api/user');
+        const data = await response.json();
         
-        // WebSocket을 통해 메시지 전송
-        socket.emit('chat message', text);
+        if (data.user) {
+          currentUser = data.user;
+          document.getElementById('userNickname').textContent = data.user.nickname;
+          socket.emit('authenticate', data.user.id);
+          loadFriends();
+        } else {
+          window.location.href = '/';
+        }
+      } catch (error) {
+        console.error('로그인 상태 확인 실패:', error);
       }
-    });
-
-    inputField.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") {
-        sendButton.click();
-      }
-    });
-
-    function setActiveFriend(friend) {
-      currentFriend = friend;
-      document.querySelectorAll(".friend-btn").forEach(btn => {
-        btn.classList.toggle("active", btn.dataset.friend === friend);
-      });
-      loadMessages(currentFriend);
     }
 
-    renderFriendButtons();
+    // 친구 목록 로드
+    async function loadFriends() {
+      try {
+        const response = await fetch('/api/friends');
+        const data = await response.json();
+        
+        friendsList.innerHTML = '';
+        data.friends.forEach(friend => {
+          const div = document.createElement('div');
+          div.className = 'friend-item';
+          div.textContent = friend.nickname;
+          div.onclick = () => selectFriend(friend);
+          friendsList.appendChild(div);
+        });
+      } catch (error) {
+        console.error('친구 목록 로드 실패:', error);
+      }
+    }
 
-    document.getElementById("addFriendBtn").addEventListener("click", () => {
-      const newFriendInput = document.getElementById("newFriendName");
-      const newFriend = newFriendInput.value.trim().toLowerCase();
-      if (newFriend && !friends.includes(newFriend)) {
-        friends.push(newFriend);
-        newFriendInput.value = "";
-        renderFriendButtons();
-        setActiveFriend(newFriend);
+    // 친구 검색
+    async function searchFriend() {
+      const searchInput = document.getElementById('friendSearch');
+      const nickname = searchInput.value.trim();
+      
+      if (!nickname) return;
+
+      try {
+        const response = await fetch(`/api/users/search?nickname=${encodeURIComponent(nickname)}`);
+        const data = await response.json();
+        
+        if (data.user) {
+          const addFriend = confirm(`${data.user.nickname}님을 친구로 추가하시겠습니까?`);
+          if (addFriend) {
+            await fetch('/api/friends/add', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({ friendId: data.user.id })
+            });
+            loadFriends();
+          }
+        } else {
+          alert('사용자를 찾을 수 없습니다.');
+        }
+      } catch (error) {
+        console.error('친구 검색 실패:', error);
+      }
+      
+      searchInput.value = '';
+    }
+
+    // 친구 선택
+    async function selectFriend(friend) {
+      currentFriend = friend;
+      document.querySelectorAll('.friend-item').forEach(item => {
+        item.classList.toggle('active', item.textContent === friend.nickname);
+      });
+      
+      // 채팅 내역 로드
+      try {
+        const response = await fetch(`/api/chats/${friend.id}`);
+        const data = await response.json();
+        
+        messagesDiv.innerHTML = '';
+        data.messages.forEach(msg => {
+          appendMessage(msg);
+        });
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      } catch (error) {
+        console.error('채팅 내역 로드 실패:', error);
+      }
+    }
+
+    // 메시지 전송
+    function sendMessage() {
+      if (!currentFriend || !messageInput.value.trim()) return;
+
+      const message = messageInput.value.trim();
+      socket.emit('chat message', {
+        friendId: currentFriend.id,
+        message: message
+      });
+      
+      messageInput.value = '';
+    }
+
+    // 메시지 표시
+    function appendMessage(msg) {
+      const div = document.createElement('div');
+      div.className = `message ${msg.sender === currentUser.id ? 'sent' : 'received'}`;
+      
+      const content = document.createElement('div');
+      content.textContent = msg.content;
+      div.appendChild(content);
+      
+      const timestamp = document.createElement('div');
+      timestamp.className = 'timestamp';
+      timestamp.textContent = new Date(msg.timestamp).toLocaleString();
+      div.appendChild(timestamp);
+      
+      messagesDiv.appendChild(div);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // 소켓 이벤트 리스너
+    socket.on('chat message', (msg) => {
+      if (currentFriend && msg.sender === currentFriend.nickname) {
+        appendMessage(msg);
       }
     });
 
-    setActiveFriend(currentFriend);
-  });
-</script>
+    // 엔터 키로 메시지 전송
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    // 로그아웃
+    async function logout() {
+      try {
+        await fetch('/auth/logout');
+        window.location.href = '/';
+      } catch (error) {
+        console.error('로그아웃 실패:', error);
+      }
+    }
+
+    // 페이지 로드 시 로그인 상태 확인
+    document.addEventListener('DOMContentLoaded', checkLoginStatus);
+  </script>
+</body>
 </html>

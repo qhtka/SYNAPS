@@ -103,10 +103,6 @@
     <div id="loginButtons" class="button-group">
       <button onclick="openSignupModal()">Sign up</button>
       <button onclick="openModal()">Log in</button>
-      <button class="kakao-login-btn" onclick="kakaoLogin()">
-        <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png" alt="Kakao">
-        카카오로 로그인
-      </button>
     </div>
 
     <section class="info">
@@ -138,6 +134,13 @@
         <input type="email" placeholder="Email">
         <input type="password" placeholder="Password">
         <button>Register</button>
+        <div style="margin-top: 20px; text-align: center;">
+          <p style="margin-bottom: 10px;">또는</p>
+          <button class="kakao-login-btn" onclick="kakaoLogin()">
+            <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png" alt="Kakao">
+            카카오로 로그인
+          </button>
+        </div>
       </div>
     </div>
 
