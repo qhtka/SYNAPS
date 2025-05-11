@@ -9,100 +9,537 @@
   <style>
     body {
       font-family: 'Helvetica Neue', sans-serif;
-      padding: 40px;
-    }
-    .chat-container {
-      display: flex;
-      gap: 20px;
-      max-width: 1200px;
-      margin: auto;
-    }
-    .friends-list {
-      width: 250px;
-      border: 1px solid #000;
-      padding: 20px;
-      background: #f8f8f8;
-    }
-    .friend-item {
-      padding: 10px;
-      margin: 5px 0;
-      cursor: pointer;
-      border-radius: 5px;
-    }
-    .friend-item:hover {
-      background: #eee;
-    }
-    .friend-item.active {
-      background: #000;
-      color: #fff;
-    }
-    .chat-box {
-      flex: 1;
-      border: 1px solid #000;
-      padding: 20px;
-      background: #f8f8f8;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+      height: 100vh;
       display: flex;
       flex-direction: column;
-      height: 600px;
     }
+
+    header {
+      background: white;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    nav {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+    }
+
+    nav a {
+      text-decoration: none;
+      color: #333;
+      font-size: 0.9rem;
+    }
+
+    nav a:hover {
+      color: #000;
+    }
+
+    .user-info button {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      padding: 8px 16px;
+      font-size: 14px;
+      transition: color 0.2s;
+    }
+
+    .user-info button:hover {
+      color: #000;
+    }
+
+    .chat-container {
+      flex: 1;
+      display: flex;
+      margin: 2rem;
+      gap: 2rem;
+      height: calc(100vh - 8rem);
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      overflow: hidden;
+    }
+
+    .chat-list {
+      width: 320px;
+      border-right: 1px solid #eee;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .add-friend {
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .add-friend input {
+      width: 100%;
+      padding: 0.8rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+      box-sizing: border-box;
+    }
+
+    .add-friend button {
+      width: 100%;
+      padding: 0.8rem;
+      background: #000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background-color 0.2s;
+    }
+
+    .add-friend button:hover {
+      background: #333;
+    }
+
+    .search-result {
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      color: #666;
+      text-align: center;
+      border-bottom: 1px solid #eee;
+    }
+
+    .search-result.error {
+      color: #ff3b30;
+    }
+
+    .search-result.success {
+      color: #34c759;
+    }
+
+    .chat-list-content {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .chat-item {
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .chat-item:hover {
+      background: #f8f8f8;
+    }
+
+    .chat-item.active {
+      background: #f0f0f0;
+    }
+
+    .chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .chat-name {
+      font-weight: 500;
+      color: #333;
+    }
+
+    .unread-badge {
+      background: #ff3b30;
+      color: white;
+      border-radius: 12px;
+      padding: 2px 8px;
+      font-size: 0.8rem;
+      min-width: 20px;
+      text-align: center;
+    }
+
+    .chat-preview {
+      color: #666;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .chat-time {
+      font-size: 0.8rem;
+      color: #999;
+    }
+
+    .chat-box {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #fff;
+    }
+
+    .chat-header-box {
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .chat-header-box h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      color: #333;
+    }
+
     .messages {
       flex: 1;
       overflow-y: auto;
-      margin-bottom: 20px;
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
     }
+
     .message {
-      margin: 10px 0;
-      padding: 10px;
-      border-radius: 10px;
       max-width: 70%;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      position: relative;
+      font-size: 0.95rem;
+      line-height: 1.4;
     }
+
     .sent {
-      background-color: #d0f0c0;
+      background: #000;
+      color: white;
       margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
+
+    .received {
+      background: #f0f0f0;
+      color: #333;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+
+    .message.deleted {
+      font-style: italic;
+      color: #999;
+      background: #f8f8f8;
+    }
+
+    .message-actions {
+      display: none;
+      position: absolute;
+      right: -40px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      padding: 4px;
+    }
+
+    .message:hover .message-actions {
+      display: flex;
+    }
+
+    .message-actions button {
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      padding: 4px 8px;
+      font-size: 0.8rem;
+      transition: color 0.2s;
+    }
+
+    .message-actions button:hover {
+      color: #000;
+    }
+
+    .timestamp {
+      font-size: 0.75rem;
+      color: #999;
+      margin-top: 0.3rem;
       text-align: right;
     }
-    .received {
-      background-color: #e0e0e0;
-      margin-right: auto;
-      text-align: left;
-    }
+
     .input-area {
+      padding: 1rem;
+      border-top: 1px solid #eee;
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .input-area input {
+      flex: 1;
+      padding: 0.8rem 1rem;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      transition: border-color 0.2s;
+    }
+
+    .input-area input:focus {
+      outline: none;
+      border-color: #000;
+    }
+
+    .input-area button {
+      padding: 0.8rem 1.5rem;
+      background: #000;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      transition: background-color 0.2s;
+    }
+
+    .input-area button:hover {
+      background: #333;
+    }
+
+    /* 스크롤바 스타일링 */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #ddd;
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #ccc;
+    }
+
+    .user-info-section {
+      padding: 15px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      margin-bottom: 15px;
+    }
+
+    .user-info-section .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .user-info-section .user-profile img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .user-info-section .user-details {
+      flex: 1;
+    }
+
+    .user-info-section .user-name {
+      font-weight: bold;
+      margin: 0 0 5px 0;
+      font-size: 1.1em;
+    }
+
+    .user-info-section .user-id-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .user-info-section .user-id {
+      color: #6c757d;
+      font-size: 0.9em;
+      margin: 0;
+      font-family: monospace;
+    }
+
+    .user-info-section .change-id-btn {
+      background: none;
+      border: 1px solid #6c757d;
+      color: #6c757d;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.8em;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .user-info-section .change-id-btn:hover {
+      background: #6c757d;
+      color: white;
+    }
+
+    .user-info-section .change-id-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .friends-list {
+      margin-top: 15px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .friend-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .friend-item:hover {
+      background-color: #f8f9fa;
+    }
+
+    .friend-item img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .friend-item .friend-info {
+      flex: 1;
+    }
+
+    .friend-item .friend-name {
+      font-weight: 500;
+      margin: 0;
+    }
+
+    .friend-item .friend-id {
+      color: #6c757d;
+      font-size: 0.8em;
+      margin: 0;
+    }
+
+    .search-result {
+      margin-top: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background-color: #f8f9fa;
+    }
+
+    .search-result.success {
+      background-color: #d4edda;
+      color: #155724;
+    }
+
+    .search-result.error {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+
+    .private-chat {
+      display: none;
+      flex-direction: column;
+      height: 100%;
+    }
+
+    .private-chat.active {
+      display: flex;
+    }
+
+    .private-chat-header {
+      padding: 15px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .private-chat-header img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+    }
+
+    .private-chat-header .chat-info {
+      flex: 1;
+    }
+
+    .private-chat-header .chat-name {
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .private-chat-header .chat-id {
+      color: #6c757d;
+      font-size: 0.9em;
+      margin: 0;
+    }
+
+    .private-chat-header .close-chat {
+      background: none;
+      border: none;
+      color: #6c757d;
+      cursor: pointer;
+      padding: 5px;
+    }
+
+    .private-chat-header .close-chat:hover {
+      color: #dc3545;
+    }
+
+    .private-chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 15px;
+    }
+
+    .private-chat-input {
+      padding: 15px;
+      border-top: 1px solid #dee2e6;
       display: flex;
       gap: 10px;
     }
-    .input-area input {
+
+    .private-chat-input input {
       flex: 1;
-      padding: 10px;
-      font-size: 16px;
+      padding: 8px 12px;
+      border: 1px solid #ced4da;
+      border-radius: 4px;
     }
-    .input-area button {
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: black;
+
+    .private-chat-input button {
+      padding: 8px 16px;
+      background-color: #007bff;
       color: white;
       border: none;
+      border-radius: 4px;
       cursor: pointer;
     }
-    .add-friend {
-      margin-bottom: 20px;
-    }
-    .add-friend input {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
-    }
-    .add-friend button {
-      width: 100%;
-      padding: 8px;
-      background-color: black;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    .timestamp {
-      font-size: 12px;
-      color: #666;
-      margin-top: 5px;
+
+    .private-chat-input button:hover {
+      background-color: #0056b3;
     }
   </style>
 </head>
@@ -113,26 +550,41 @@
       <a href="/">Home</a>
       <a href="explore.html">Explore</a>
       <a href="chat.html">Chat</a>
-      <div id="userInfo" class="user-info">
-        <span id="userNickname"></span>
+      <div id="userInfo" class="user-info" style="display: none;">
         <button onclick="logout()">로그아웃</button>
       </div>
     </nav>
   </header>
 
   <div class="chat-container">
-    <div class="friends-list">
-      <div class="add-friend">
-        <input type="text" id="friendSearch" placeholder="친구 검색...">
-        <button onclick="searchFriend()">친구 찾기</button>
+    <div class="sidebar">
+      <div class="user-info-section">
+        <div class="user-profile">
+          <img id="userProfileImage" src="" alt="프로필 이미지">
+          <div class="user-details">
+            <h3 class="user-name" id="userName"></h3>
+            <div class="user-id-container">
+              <p class="user-id" id="userId"></p>
+              <button class="change-id-btn" onclick="changeUserId()" id="changeIdBtn">변경</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div id="friendsList"></div>
+      
+      <div class="add-friend">
+        <input type="text" id="friendSearch" placeholder="친구의 ID 키를 입력하세요..." maxlength="8">
+        <button onclick="searchFriend()">친구 찾기</button>
+        <div id="searchResult" class="search-result" style="display: none;"></div>
+      </div>
+
+      <div class="friends-list" id="friendsList">
+        <!-- 친구 목록이 여기에 동적으로 추가됩니다 -->
+      </div>
     </div>
-    <div class="chat-box">
-      <div id="messages" class="messages"></div>
-      <div class="input-area">
-        <input type="text" id="messageInput" placeholder="메시지를 입력하세요...">
-        <button onclick="sendMessage()">전송</button>
+
+    <div class="chat-main">
+      <div id="privateChats">
+        <!-- 1:1 채팅방이 여기에 동적으로 추가됩니다 -->
       </div>
     </div>
   </div>
@@ -140,92 +592,100 @@
   <script>
     const socket = io();
     let currentUser = null;
-    let currentFriend = null;
+    let currentChat = null;
     const messagesDiv = document.getElementById('messages');
     const messageInput = document.getElementById('messageInput');
-    const friendsList = document.getElementById('friendsList');
+    const chatList = document.getElementById('chatList');
+    const chatHeader = document.getElementById('chatHeader');
+    const currentChatName = document.getElementById('currentChatName');
 
-    // 로그인 상태 확인
+    // 로그인 상태 확인 함수 수정
     async function checkLoginStatus() {
+      console.log('=== 로그인 상태 확인 시작 ===');
       try {
         const response = await fetch('/api/user');
+        console.log('로그인 상태 응답:', response.status, response.statusText);
         const data = await response.json();
+        console.log('로그인 상태 데이터:', data);
         
         if (data.user) {
+          console.log('사용자 인증됨:', data.user);
           currentUser = data.user;
-          document.getElementById('userNickname').textContent = data.user.nickname;
           socket.emit('authenticate', data.user.id);
-          loadFriends();
+          await loadUserInfo();
         } else {
+          console.log('사용자 인증되지 않음, 홈으로 리다이렉트');
           window.location.href = '/';
         }
       } catch (error) {
-        console.error('로그인 상태 확인 실패:', error);
+        console.error('로그인 상태 확인 중 에러:', error);
       }
     }
 
-    // 친구 목록 로드
-    async function loadFriends() {
+    // 채팅방 목록 로드
+    async function loadChats() {
       try {
-        const response = await fetch('/api/friends');
+        const response = await fetch('/api/chats');
         const data = await response.json();
         
-        friendsList.innerHTML = '';
-        data.friends.forEach(friend => {
+        chatList.innerHTML = '';
+        data.chats.forEach(chat => {
           const div = document.createElement('div');
-          div.className = 'friend-item';
-          div.textContent = friend.nickname;
-          div.onclick = () => selectFriend(friend);
-          friendsList.appendChild(div);
+          div.className = 'chat-item';
+          if (currentChat && chat.id === currentChat.id) {
+            div.classList.add('active');
+          }
+          
+          const header = document.createElement('div');
+          header.className = 'chat-header';
+          
+          const name = document.createElement('span');
+          name.className = 'chat-name';
+          name.textContent = chat.participant.nickname;
+          
+          const time = document.createElement('span');
+          time.className = 'chat-time';
+          time.textContent = new Date(chat.updatedAt).toLocaleString();
+          
+          header.appendChild(name);
+          header.appendChild(time);
+          
+          const preview = document.createElement('div');
+          preview.className = 'chat-preview';
+          if (chat.lastMessage) {
+            preview.textContent = `${chat.lastMessage.sender.nickname}: ${chat.lastMessage.content}`;
+          }
+          
+          div.appendChild(header);
+          div.appendChild(preview);
+          
+          if (chat.unreadCount > 0) {
+            const badge = document.createElement('span');
+            badge.className = 'unread-badge';
+            badge.textContent = chat.unreadCount;
+            header.appendChild(badge);
+          }
+          
+          div.onclick = () => selectChat(chat);
+          chatList.appendChild(div);
         });
       } catch (error) {
-        console.error('친구 목록 로드 실패:', error);
+        console.error('채팅방 목록 로드 실패:', error);
       }
     }
 
-    // 친구 검색
-    async function searchFriend() {
-      const searchInput = document.getElementById('friendSearch');
-      const nickname = searchInput.value.trim();
+    // 채팅방 선택
+    async function selectChat(chat) {
+      currentChat = chat;
+      currentChatName.textContent = chat.participant.nickname;
+      chatHeader.style.display = 'block';
       
-      if (!nickname) return;
-
-      try {
-        const response = await fetch(`/api/users/search?nickname=${encodeURIComponent(nickname)}`);
-        const data = await response.json();
-        
-        if (data.user) {
-          const addFriend = confirm(`${data.user.nickname}님을 친구로 추가하시겠습니까?`);
-          if (addFriend) {
-            await fetch('/api/friends/add', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({ friendId: data.user.id })
-            });
-            loadFriends();
-          }
-        } else {
-          alert('사용자를 찾을 수 없습니다.');
-        }
-      } catch (error) {
-        console.error('친구 검색 실패:', error);
-      }
-      
-      searchInput.value = '';
-    }
-
-    // 친구 선택
-    async function selectFriend(friend) {
-      currentFriend = friend;
-      document.querySelectorAll('.friend-item').forEach(item => {
-        item.classList.toggle('active', item.textContent === friend.nickname);
+      document.querySelectorAll('.chat-item').forEach(item => {
+        item.classList.toggle('active', item.querySelector('.chat-name').textContent === chat.participant.nickname);
       });
       
-      // 채팅 내역 로드
       try {
-        const response = await fetch(`/api/chats/${friend.id}`);
+        const response = await fetch(`/api/chats/${chat.participant.id}`);
         const data = await response.json();
         
         messagesDiv.innerHTML = '';
@@ -233,18 +693,253 @@
           appendMessage(msg);
         });
         messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        
+        // 채팅방 목록 업데이트
+        loadChats();
       } catch (error) {
         console.error('채팅 내역 로드 실패:', error);
       }
     }
 
+    // 사용자 정보 로드 함수 수정
+    async function loadUserInfo() {
+      console.log('=== 사용자 정보 로드 시작 ===');
+      try {
+        const response = await fetch('/api/users/me');
+        console.log('사용자 정보 응답:', response.status, response.statusText);
+        const data = await response.json();
+        console.log('사용자 정보 데이터:', data);
+        
+        if (data.user) {
+          const userName = document.getElementById('userName');
+          const userId = document.getElementById('userId');
+          const userProfileImage = document.getElementById('userProfileImage');
+          
+          console.log('DOM 요소 업데이트:', {
+            userName: userName ? '존재' : '없음',
+            userId: userId ? '존재' : '없음',
+            userProfileImage: userProfileImage ? '존재' : '없음'
+          });
+          
+          if (userName) {
+            userName.textContent = data.user.nickname;
+            console.log('사용자 이름 업데이트:', data.user.nickname);
+          }
+          if (userId) {
+            userId.textContent = `ID: ${data.user.userId}`;
+            console.log('사용자 ID 업데이트:', data.user.userId);
+          }
+          if (userProfileImage) {
+            userProfileImage.src = data.user.kakaoProfile?.profileImage || '/default-profile.png';
+            console.log('프로필 이미지 업데이트:', userProfileImage.src);
+          }
+          
+          const changeIdBtn = document.getElementById('changeIdBtn');
+          if (changeIdBtn) {
+            changeIdBtn.disabled = false;
+            console.log('ID 변경 버튼 활성화');
+          }
+        } else {
+          console.error('사용자 정보가 없습니다.');
+        }
+      } catch (error) {
+        console.error('사용자 정보 로드 중 에러:', error);
+      }
+    }
+
+    // ID 키 변경 함수 추가
+    async function changeUserId() {
+      const changeIdBtn = document.getElementById('changeIdBtn');
+      changeIdBtn.disabled = true;
+      
+      try {
+        const response = await fetch('/api/users/change-id', {
+          method: 'POST'
+        });
+        const data = await response.json();
+        
+        if (response.ok) {
+          document.getElementById('userId').textContent = `ID: ${data.newUserId}`;
+          alert('ID가 성공적으로 변경되었습니다.');
+        } else {
+          alert(data.error || 'ID 변경 중 오류가 발생했습니다.');
+        }
+      } catch (error) {
+        console.error('ID 변경 실패:', error);
+        alert('ID 변경 중 오류가 발생했습니다.');
+      } finally {
+        changeIdBtn.disabled = false;
+      }
+    }
+
+    // 친구 검색 함수 수정
+    async function searchFriend() {
+      const searchInput = document.getElementById('friendSearch');
+      const searchResult = document.getElementById('searchResult');
+      const userId = searchInput.value.trim().toUpperCase();
+
+      if (!userId) {
+        searchResult.textContent = 'ID 키를 입력해주세요.';
+        searchResult.className = 'search-result error';
+        searchResult.style.display = 'block';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/api/users/search?userId=${userId}`);
+        const data = await response.json();
+
+        searchResult.textContent = data.message;
+        searchResult.className = `search-result ${data.user ? 'success' : 'error'}`;
+        searchResult.style.display = 'block';
+
+        if (data.user) {
+          if (confirm(`${data.user.nickname}님을 친구로 추가하시겠습니까?`)) {
+            await addFriend(data.user.id);
+            loadFriendsList();
+          }
+        }
+      } catch (error) {
+        console.error('친구 검색 실패:', error);
+        searchResult.textContent = '친구 검색 중 오류가 발생했습니다.';
+        searchResult.className = 'search-result error';
+        searchResult.style.display = 'block';
+      }
+    }
+
+    // 친구 목록 로드
+    async function loadFriendsList() {
+      try {
+        const response = await fetch('/api/friends');
+        const data = await response.json();
+        const friendsList = document.getElementById('friendsList');
+        
+        friendsList.innerHTML = data.friends.map(friend => `
+          <div class="friend-item" onclick="openPrivateChat('${friend.id}', '${friend.nickname}', '${friend.userId}', '${friend.profileImage || ''}')">
+            <img src="${friend.profileImage || '/default-profile.png'}" alt="${friend.nickname}">
+            <div class="friend-info">
+              <p class="friend-name">${friend.nickname}</p>
+              <p class="friend-id">ID: ${friend.userId}</p>
+            </div>
+          </div>
+        `).join('');
+      } catch (error) {
+        console.error('친구 목록 로드 실패:', error);
+      }
+    }
+
+    // 1:1 채팅방 열기
+    function openPrivateChat(friendId, friendName, friendUserId, friendProfileImage) {
+      const privateChats = document.getElementById('privateChats');
+      const chatId = `private-chat-${friendId}`;
+      
+      // 이미 열린 채팅방이 있는지 확인
+      let chatRoom = document.getElementById(chatId);
+      
+      if (!chatRoom) {
+        chatRoom = document.createElement('div');
+        chatRoom.id = chatId;
+        chatRoom.className = 'private-chat';
+        chatRoom.innerHTML = `
+          <div class="private-chat-header">
+            <img src="${friendProfileImage || '/default-profile.png'}" alt="${friendName}">
+            <div class="chat-info">
+              <p class="chat-name">${friendName}</p>
+              <p class="chat-id">ID: ${friendUserId}</p>
+            </div>
+            <button class="close-chat" onclick="closePrivateChat('${chatId}')">&times;</button>
+          </div>
+          <div class="private-chat-messages" id="${chatId}-messages"></div>
+          <div class="private-chat-input">
+            <input type="text" id="${chatId}-input" placeholder="메시지를 입력하세요...">
+            <button onclick="sendPrivateMessage('${friendId}', '${chatId}')">전송</button>
+          </div>
+        `;
+        privateChats.appendChild(chatRoom);
+      }
+      
+      // 모든 채팅방을 숨기고 현재 채팅방만 표시
+      document.querySelectorAll('.private-chat').forEach(chat => {
+        chat.classList.remove('active');
+      });
+      chatRoom.classList.add('active');
+      
+      // 메시지 입력 필드에 포커스
+      const inputField = document.getElementById(`${chatId}-input`);
+      inputField.focus();
+      
+      // Enter 키로 메시지 전송
+      inputField.onkeypress = (e) => {
+        if (e.key === 'Enter') {
+          sendPrivateMessage(friendId, chatId);
+        }
+      };
+    }
+
+    // 1:1 채팅방 닫기
+    function closePrivateChat(chatId) {
+      const chatRoom = document.getElementById(chatId);
+      if (chatRoom) {
+        chatRoom.remove();
+      }
+    }
+
+    // 1:1 메시지 전송
+    async function sendPrivateMessage(friendId, chatId) {
+      const inputField = document.getElementById(`${chatId}-input`);
+      const message = inputField.value.trim();
+      
+      if (!message) return;
+      
+      try {
+        const response = await fetch('/api/messages/private', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            receiverId: friendId,
+            content: message
+          })
+        });
+        
+        if (response.ok) {
+          inputField.value = '';
+          // 메시지 목록 새로고침
+          loadPrivateMessages(friendId, chatId);
+        }
+      } catch (error) {
+        console.error('메시지 전송 실패:', error);
+      }
+    }
+
+    // 1:1 메시지 로드
+    async function loadPrivateMessages(friendId, chatId) {
+      try {
+        const response = await fetch(`/api/messages/private/${friendId}`);
+        const data = await response.json();
+        const messagesContainer = document.getElementById(`${chatId}-messages`);
+        
+        messagesContainer.innerHTML = data.messages.map(msg => `
+          <div class="message ${msg.sender === currentUserId ? 'sent' : 'received'}">
+            <div class="message-content">${msg.content}</div>
+            <div class="message-time">${new Date(msg.createdAt).toLocaleTimeString()}</div>
+          </div>
+        `).join('');
+        
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
+      } catch (error) {
+        console.error('메시지 로드 실패:', error);
+      }
+    }
+
     // 메시지 전송
     function sendMessage() {
-      if (!currentFriend || !messageInput.value.trim()) return;
-
+      if (!currentChat || !messageInput.value.trim()) return;
+      
       const message = messageInput.value.trim();
       socket.emit('chat message', {
-        friendId: currentFriend.id,
+        friendId: currentChat.participant.id,
         message: message
       });
       
@@ -255,25 +950,76 @@
     function appendMessage(msg) {
       const div = document.createElement('div');
       div.className = `message ${msg.sender === currentUser.id ? 'sent' : 'received'}`;
+      div.dataset.messageId = msg._id;
       
-      const content = document.createElement('div');
-      content.textContent = msg.content;
-      div.appendChild(content);
-      
-      const timestamp = document.createElement('div');
-      timestamp.className = 'timestamp';
-      timestamp.textContent = new Date(msg.timestamp).toLocaleString();
-      div.appendChild(timestamp);
+      if (msg.isDeleted) {
+        div.classList.add('deleted');
+        div.textContent = '삭제된 메시지입니다.';
+      } else {
+        const content = document.createElement('div');
+        content.textContent = msg.content;
+        div.appendChild(content);
+        
+        const timestamp = document.createElement('div');
+        timestamp.className = 'timestamp';
+        timestamp.textContent = new Date(msg.timestamp).toLocaleString();
+        div.appendChild(timestamp);
+        
+        if (msg.sender === currentUser.id) {
+          const actions = document.createElement('div');
+          actions.className = 'message-actions';
+          
+          const deleteBtn = document.createElement('button');
+          deleteBtn.textContent = '삭제';
+          deleteBtn.onclick = () => deleteMessage(msg._id);
+          actions.appendChild(deleteBtn);
+          
+          div.appendChild(actions);
+        }
+      }
       
       messagesDiv.appendChild(div);
       messagesDiv.scrollTop = messagesDiv.scrollHeight;
     }
 
-    // 소켓 이벤트 리스너
-    socket.on('chat message', (msg) => {
-      if (currentFriend && msg.sender === currentFriend.nickname) {
-        appendMessage(msg);
+    // 메시지 삭제
+    async function deleteMessage(messageId) {
+      if (!currentChat || !confirm('메시지를 삭제하시겠습니까?')) return;
+      
+      try {
+        await fetch(`/api/chats/${currentChat.id}/messages/${messageId}`, {
+          method: 'DELETE'
+        });
+        
+        const messageDiv = messagesDiv.querySelector(`[data-message-id="${messageId}"]`);
+        if (messageDiv) {
+          messageDiv.classList.add('deleted');
+          messageDiv.innerHTML = '삭제된 메시지입니다.';
+        }
+      } catch (error) {
+        console.error('메시지 삭제 실패:', error);
       }
+    }
+
+    // 소켓 이벤트 리스너
+    socket.on('chat message', (data) => {
+      if (currentChat && data.chatId === currentChat.id) {
+        appendMessage(data.message);
+      }
+      // 채팅방 목록 업데이트
+      loadChats();
+    });
+
+    socket.on('message deleted', (data) => {
+      if (currentChat && data.chatId === currentChat.id) {
+        const messageDiv = messagesDiv.querySelector(`[data-message-id="${data.messageId}"]`);
+        if (messageDiv) {
+          messageDiv.classList.add('deleted');
+          messageDiv.innerHTML = '삭제된 메시지입니다.';
+        }
+      }
+      // 채팅방 목록 업데이트
+      loadChats();
     });
 
     // 엔터 키로 메시지 전송
@@ -293,8 +1039,15 @@
       }
     }
 
-    // 페이지 로드 시 로그인 상태 확인
-    document.addEventListener('DOMContentLoaded', checkLoginStatus);
+    // 페이지 로드 시 실행되는 코드 수정
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Page loaded, checking login status...'); // 디버깅 로그 추가
+      checkLoginStatus();
+      loadChats();
+      loadFriendsList();
+      // 5초마다 친구 목록 새로고침
+      setInterval(loadFriendsList, 5000);
+    });
   </script>
 </body>
 </html>
