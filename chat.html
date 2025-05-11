@@ -379,10 +379,10 @@
     }
 
     .user-info-section .change-id-btn {
-      background: none;
-      border: 1px solid #6c757d;
-      color: #6c757d;
-      padding: 2px 8px;
+      background: #007bff;
+      border: none;
+      color: white;
+      padding: 4px 12px;
       border-radius: 4px;
       font-size: 0.8em;
       cursor: pointer;
@@ -390,12 +390,11 @@
     }
 
     .user-info-section .change-id-btn:hover {
-      background: #6c757d;
-      color: white;
+      background: #0056b3;
     }
 
     .user-info-section .change-id-btn:disabled {
-      opacity: 0.5;
+      background: #ccc;
       cursor: not-allowed;
     }
 
@@ -564,8 +563,8 @@
           <div class="user-details">
             <h3 class="user-name" id="userName"></h3>
             <div class="user-id-container">
+              <button class="change-id-btn" onclick="changeUserId()" id="changeIdBtn">생성</button>
               <p class="user-id" id="userId"></p>
-              <button class="change-id-btn" onclick="changeUserId()" id="changeIdBtn">변경</button>
             </div>
           </div>
         </div>
@@ -726,7 +725,7 @@
             console.log('사용자 이름 업데이트:', data.user.nickname);
           }
           if (userId) {
-            userId.textContent = `ID: ${data.user.userId}`;
+            userId.textContent = data.user.userId;
             console.log('사용자 ID 업데이트:', data.user.userId);
           }
           if (userProfileImage) {
@@ -737,7 +736,7 @@
           const changeIdBtn = document.getElementById('changeIdBtn');
           if (changeIdBtn) {
             changeIdBtn.disabled = false;
-            console.log('ID 변경 버튼 활성화');
+            console.log('ID 생성 버튼 활성화');
           }
         } else {
           console.error('사용자 정보가 없습니다.');
