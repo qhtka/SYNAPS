@@ -2,6 +2,7 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
+const path = require('path');
 
 // Express 서버와 HTTP 서버 생성
 const app = express();
@@ -9,7 +10,8 @@ const server = http.createServer(app);
 const io = socketIo(server);
 
 // static 파일을 제공할 경로 설정 (HTML, CSS, JS)
-app.use(express.static('public'));
+app.use(express.static(__dirname));  // 루트 디렉토리의 파일들 제공
+app.use('/public', express.static(path.join(__dirname, 'public')));  // public 디렉토리 파일들 제공
 
 // 사용자가 접속했을 때 처리
 io.on('connection', (socket) => {
