@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SYNAPS</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .button-group {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background-color: #fff;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #000;
+      width: 300px;
+      text-align: center;
+    }
+
+    .close {
+      color: #000;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .modal-content input,
+    .modal-content button {
+      font-family: 'Helvetica Neue', sans-serif;
+      font-size: 16px;
+      padding: 10px;
+      border: 1px solid #000;
+      margin-bottom: 10px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .network-visual {
+      margin-top: 60px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">SYNAPS</div>
+    <nav>
+      <a href="#">Home</a>
+      <a href="explore.html">Explore</a>
+      <a href="chat.html">Chat</a>
+    </nav>
+  </header>
+
+  <main>
+    <h1>Express your true self</h1>
+    <p>Share your thoughts and connect with others</p>
+    <div class="button-group">
+      <button onclick="openSignupModal()">Sign up</button>
+      <button onclick="openModal()">Log in</button>
+    </div>
+
+    <section class="info">
+      <div>
+        <h2>Your Feelings</h2>
+        <p>Create a post about your current emotions and experiences</p>
+      </div>
+      <div>
+        <h2>Explore Posts</h2>
+        <p>Discover and interact with posts that resonate with you</p>
+      </div>
+    </section>
+
+    <div id="loginModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2>Login</h2>
+        <input type="text" placeholder="Username" >
+        <input type="password" placeholder="Password" >
+        <button>Submit</button>
+      </div>
+    </div>
+
+    <div id="signupModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeSignupModal()">&times;</span>
+        <h2>Sign Up</h2>
+        <input type="text" placeholder="Username">
+        <input type="email" placeholder="Email">
+        <input type="password" placeholder="Password">
+        <button>Register</button>
+      </div>
+    </div>
+
+    <section class="network-visual">
+      <h2>Your Memory Neuron</h2>
+      <canvas id="networkCanvas" width="600" height="400" style="border:1px solid #000; background: #f8f8f8;"></canvas>
+      <p>As you interact with friends, lines will connect you and glow with activity over time.</p>
+    </section>
+  </main>
+  <script>
+    function openModal() {
+      document.getElementById('loginModal').style.display = 'block';
+    }
+
+    function closeModal() {
+      document.getElementById('loginModal').style.display = 'none';
+    }
+
+    function openSignupModal() {
+      document.getElementById('signupModal').style.display = 'block';
+    }
+
+    function closeSignupModal() {
+      document.getElementById('signupModal').style.display = 'none';
+    }
+
+    window.onclick = function(event) {
+      const loginModal = document.getElementById('loginModal');
+      const signupModal = document.getElementById('signupModal');
+      if (event.target === loginModal) {
+        loginModal.style.display = 'none';
+      }
+      if (event.target === signupModal) {
+        signupModal.style.display = 'none';
+      }
+    }
+
+    const canvas = document.getElementById('networkCanvas');
+    const ctx = canvas.getContext('2d');
+    let pulseRadius = 0;
+    let pulseGrowing = true;
+    let angleX = 0;
+    let angleY = 0;
+
+    function drawNetwork() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const centerX = canvas.width / 2;
+      const centerY = canvas.height / 2;
+
+      // Pulse ring
+      ctx.beginPath();
+      ctx.arc(centerX, centerY, pulseRadius + 25, 0, Math.PI * 2);
+      ctx.strokeStyle = 'rgba(0,255,0,0.2)';
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.closePath();
+
+      if (pulseGrowing) {
+        pulseRadius += 0.5;
+        if (pulseRadius > 20) pulseGrowing = false;
+      } else {
+        pulseRadius -= 0.5;
+        if (pulseRadius < 0) pulseGrowing = true;
+      }
+
+      // Center core (smaller black dot)
+      ctx.save();
+      ctx.translate(centerX, centerY);
+      ctx.scale(1.1, 1);
+      ctx.beginPath();
+      ctx.arc(0, 0, 10, 0, Math.PI * 2); // smaller center
+      ctx.fillStyle = '#000';
+      ctx.fill();
+      ctx.closePath();
+      ctx.restore();
+
+      const friends = [
+        { angleOffset: 0, strength: 1, history: 3 },
+        { angleOffset: 2, strength: 2, history: 5 },
+        { angleOffset: 4, strength: 4, history: 8 },
+        { angleOffset: 6, strength: 3, history: 6 },
+        { angleOffset: 8, strength: 5, history: 10 },
+        { angleOffset: 10, strength: 2, history: 2 },
+      ];
+
+      friends.forEach(friend => {
+        const offsetX = angleX + friend.angleOffset;
+        const offsetY = angleY + friend.angleOffset;
+        const depth = Math.sin(offsetY);
+
+        const dist = 120 + 10 * depth;
+        const fx = centerX + Math.cos(offsetX) * dist;
+        const fy = centerY + Math.sin(offsetY) * dist * 0.7;
+
+        const scale = 1 + depth * 0.3;
+        const opacity = 0.5 + 0.5 * (depth + 1) / 2;
+
+        ctx.beginPath();
+        ctx.moveTo(centerX, centerY);
+        ctx.lineTo(fx, fy);
+        ctx.strokeStyle = `rgba(0,255,0,${friend.strength * 0.2 * opacity})`;
+        ctx.lineWidth = friend.strength * scale;
+        ctx.shadowColor = '#0f0';
+        ctx.shadowBlur = friend.strength * 3 * opacity;
+        ctx.stroke();
+        ctx.closePath();
+
+        ctx.beginPath();
+        ctx.arc(fx, fy, 10 * scale, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(102, 102, 102, ${opacity})`;
+        ctx.shadowBlur = 0;
+        ctx.fill();
+        ctx.closePath();
+
+        if (depth > 0) {
+          ctx.beginPath();
+          ctx.rect(fx - 20, fy + 15, friend.history * 5 * scale, 4);
+          ctx.fillStyle = `rgba(153, 153, 153, ${opacity})`;
+          ctx.fill();
+          ctx.closePath();
+        }
+      });
+
+      angleX += 0.015;
+      angleY += 0.008;
+      requestAnimationFrame(drawNetwork);
+    }
+
+    drawNetwork();
+  </script>
+</body>
+</html>

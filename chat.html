@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat - SYNAPS</title>
+  <link rel="stylesheet" href="styles.css"/>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    body {
+      font-family: 'Helvetica Neue', sans-serif;
+      padding: 40px;
+    }
+    .chat-box {
+      max-width: 600px;
+      margin: auto;
+      border: 1px solid #000;
+      padding: 20px;
+      background: #f8f8f8;
+    }
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 70%;
+    }
+    .sent {
+      background-color: #d0f0c0;
+      margin-left: auto;
+      text-align: right;
+    }
+    .received {
+      background-color: #e0e0e0;
+      margin-right: auto;
+      text-align: left;
+    }
+    .input-area {
+      display: flex;
+      margin-top: 20px;
+    }
+    .input-area input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+    }
+    .input-area button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: black;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    .friend-btn {
+      background-color: #ddd;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .friend-btn.active {
+      background-color: black;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <div style="margin-bottom: 20px;">
+    <input type="text" id="newFriendName" placeholder="Enter friend's name" style="padding: 8px; width: 200px;">
+    <button id="addFriendBtn" class="friend-btn">Add Friend</button>
+  </div>
+  <h1>1:1 Chat</h1>
+  <div id="friendList" style="margin-bottom: 20px; display: flex; gap: 10px;">
+    <button class="friend-btn" data-friend="emily">Emily</button>
+    <button class="friend-btn" data-friend="john">John</button>
+  </div>
+  <div class="chat-box" id="chatBox">
+    <div class="message received">Hi there! 😊</div>
+    <div class="message sent">Hey! What's up? 👋</div>
+
+    <div class="input-area">
+      <input type="text" placeholder="Type your message...">
+      <button>Send</button>
+    </div>
+  </div>
+</body>
+<script>
+  document.addEventListener("DOMContentLoaded", () => {
+    const socket = io();
+    const sendButton = document.querySelector("button");
+    const inputField = document.querySelector("input");
+    const chatBox = document.getElementById("chatBox");
+    const inputArea = document.querySelector(".input-area");
+
+    let currentFriend = "emily";
+    let friends = ["emily", "john"];
+
+    function renderFriendButtons() {
+      const friendListDiv = document.getElementById("friendList");
+      friendListDiv.innerHTML = "";
+      friends.forEach(friend => {
+        const button = document.createElement("button");
+        button.classList.add("friend-btn");
+        button.dataset.friend = friend;
+        button.textContent = friend.charAt(0).toUpperCase() + friend.slice(1);
+        if (friend === currentFriend) button.classList.add("active");
+        button.addEventListener("click", () => setActiveFriend(friend));
+        friendListDiv.appendChild(button);
+      });
+    }
+
+    function loadMessages(friend) {
+      const saved = localStorage.getItem("chat_" + friend);
+      const messages = saved ? JSON.parse(saved) : [];
+      const chatMessages = messages.map(msg => {
+        const div = document.createElement("div");
+        div.classList.add("message", msg.type);
+        div.textContent = msg.text;
+        return div;
+      });
+      chatBox.innerHTML = "";
+      chatMessages.forEach(msg => chatBox.appendChild(msg));
+      chatBox.appendChild(inputArea);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function saveMessage(friend, text, type) {
+      const saved = localStorage.getItem("chat_" + friend);
+      const messages = saved ? JSON.parse(saved) : [];
+      messages.push({ text, type });
+      localStorage.setItem("chat_" + friend, JSON.stringify(messages));
+    }
+
+    // WebSocket 이벤트 리스너
+    socket.on('chat message', (msg) => {
+      const newMessage = document.createElement("div");
+      newMessage.classList.add("message", "received");
+      newMessage.textContent = msg;
+      chatBox.insertBefore(newMessage, inputArea);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    sendButton.addEventListener("click", () => {
+      const text = inputField.value.trim();
+      if (text !== "") {
+        const newMessage = document.createElement("div");
+        newMessage.classList.add("message", "sent");
+        newMessage.textContent = text;
+        chatBox.insertBefore(newMessage, inputArea);
+        inputField.value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+        
+        // WebSocket을 통해 메시지 전송
+        socket.emit('chat message', text);
+      }
+    });
+
+    inputField.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        sendButton.click();
+      }
+    });
+
+    function setActiveFriend(friend) {
+      currentFriend = friend;
+      document.querySelectorAll(".friend-btn").forEach(btn => {
+        btn.classList.toggle("active", btn.dataset.friend === friend);
+      });
+      loadMessages(currentFriend);
+    }
+
+    renderFriendButtons();
+
+    document.getElementById("addFriendBtn").addEventListener("click", () => {
+      const newFriendInput = document.getElementById("newFriendName");
+      const newFriend = newFriendInput.value.trim().toLowerCase();
+      if (newFriend && !friends.includes(newFriend)) {
+        friends.push(newFriend);
+        newFriendInput.value = "";
+        renderFriendButtons();
+        setActiveFriend(newFriend);
+      }
+    });
+
+    setActiveFriend(currentFriend);
+  });
+</script>
+</html>

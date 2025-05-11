@@ -1,0 +1,64 @@
+body {
+    margin: 0;
+    font-family: 'Helvetica Neue', sans-serif;
+    background-color: #fff;
+    color: #000;
+    padding: 20px;
+  }
+  
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #000;
+    padding-bottom: 10px;
+  }
+  
+  .logo {
+    font-weight: bold;
+    font-size: 24px;
+  }
+  
+  nav a {
+    margin-left: 20px;
+    text-decoration: none;
+    color: #000;
+    font-size: 16px;
+  }
+  
+  main {
+    text-align: center;
+    margin-top: 60px;
+  }
+  
+  h1 {
+    font-size: 36px;
+    margin-bottom: 10px;
+  }
+  
+  p {
+    font-size: 18px;
+    margin-bottom: 30px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    border: 1px solid #000;
+    background: none;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  
+  .info {
+    display: flex;
+    justify-content: center;
+    gap: 60px;
+    margin-top: 60px;
+    border-top: 1px solid #000;
+    padding-top: 40px;
+  }
+  
+  .info div {
+    max-width: 300px;
+    text-align: left;
+  }

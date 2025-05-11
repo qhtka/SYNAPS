@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat - SYNAPS</title>
+  <script src="/socket.io/socket.io.js"></script> <!-- Socket.io 클라이언트 -->
+  <style>
+    /* 간단한 스타일 추가 */
+    .chat-box {
+      max-width: 600px;
+      margin: auto;
+      border: 1px solid #000;
+      padding: 20px;
+      background: #f8f8f8;
+    }
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border-radius: 10px;
+      max-width: 70%;
+    }
+    .sent {
+      background-color: #d0f0c0;
+      margin-left: auto;
+      text-align: right;
+    }
+    .received {
+      background-color: #e0e0e0;
+      margin-right: auto;
+      text-align: left;
+    }
+    .input-area {
+      display: flex;
+      margin-top: 20px;
+    }
+    .input-area input {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+    }
+    .input-area button {
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: black;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>1:1 Chat</h1>
+  <div class="chat-box" id="chatBox">
+    <div class="message received">Hi there! 😊</div>
+    <div class="message sent">Hey! What's up? 👋</div>
+
+    <div class="input-area">
+      <input type="text" placeholder="Type your message...">
+      <button>Send</button>
+    </div>
+  </div>
+
+  <script>
+    // 클라이언트 측에서 socket.io 연결 설정
+    const socket = io(); // 서버와 실시간 연결
+
+    const sendButton = document.querySelector("button");
+    const inputField = document.querySelector("input");
+    const chatBox = document.getElementById("chatBox");
+
+    // 메시지를 서버로 보내는 함수
+    sendButton.addEventListener("click", () => {
+      const text = inputField.value.trim();
+      if (text !== "") {
+        const newMessage = document.createElement("div");
+        newMessage.classList.add("message", "sent");
+        newMessage.textContent = text;
+        chatBox.insertBefore(newMessage, chatBox.querySelector(".input-area"));
+        inputField.value = "";
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 서버로 메시지 전송
+        socket.emit("chat message", text);
+      }
+    });
+
+    // 다른 사용자가 보낸 메시지를 수신하여 채팅창에 표시
+    socket.on("chat message", (msg) => {
+      const newMessage = document.createElement("div");
+      newMessage.classList.add("message", "received");
+      newMessage.textContent = msg;
+      chatBox.insertBefore(newMessage, chatBox.querySelector(".input-area"));
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+  </script>
+</body>
+</html>
