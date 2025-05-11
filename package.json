@@ -12,6 +12,9 @@
   "description": "",
   "dependencies": {
     "express": "^5.1.0",
+    "express-session": "^1.18.1",
+    "passport": "^0.7.0",
+    "passport-kakao": "^1.0.1",
     "socket.io": "^4.8.1"
   }
 }

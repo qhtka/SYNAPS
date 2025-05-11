@@ -54,6 +54,33 @@
       margin-top: 60px;
       text-align: center;
     }
+    .kakao-login-btn {
+      background-color: #FEE500;
+      color: #000000;
+      border: none;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .kakao-login-btn img {
+      width: 20px;
+      height: 20px;
+    }
+    .user-info {
+      display: none;
+      align-items: center;
+      gap: 10px;
+    }
+    .user-info.visible {
+      display: flex;
+    }
+    .button-group.hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -63,15 +90,23 @@
       <a href="#">Home</a>
       <a href="explore.html">Explore</a>
       <a href="chat.html">Chat</a>
+      <div id="userInfo" class="user-info">
+        <span id="userNickname"></span>
+        <button onclick="logout()">로그아웃</button>
+      </div>
     </nav>
   </header>
 
   <main>
     <h1>Express your true self</h1>
     <p>Share your thoughts and connect with others</p>
-    <div class="button-group">
+    <div id="loginButtons" class="button-group">
       <button onclick="openSignupModal()">Sign up</button>
       <button onclick="openModal()">Log in</button>
+      <button class="kakao-login-btn" onclick="kakaoLogin()">
+        <img src="https://developers.kakao.com/assets/img/about/logos/kakaotalksharing/kakaotalk_sharing_btn_medium.png" alt="Kakao">
+        카카오로 로그인
+      </button>
     </div>
 
     <section class="info">
@@ -232,6 +267,50 @@
     }
 
     drawNetwork();
+
+    // 로그인 상태 확인
+    async function checkLoginStatus() {
+      try {
+        const response = await fetch('/api/user');
+        const data = await response.json();
+        
+        const loginButtons = document.getElementById('loginButtons');
+        const userInfo = document.getElementById('userInfo');
+        const userNickname = document.getElementById('userNickname');
+        
+        if (data.user) {
+          loginButtons.classList.add('hidden');
+          userInfo.classList.add('visible');
+          userNickname.textContent = data.user.nickname;
+        } else {
+          loginButtons.classList.remove('hidden');
+          userInfo.classList.remove('visible');
+        }
+      } catch (error) {
+        console.error('로그인 상태 확인 실패:', error);
+      }
+    }
+
+    // 카카오 로그인
+    function kakaoLogin() {
+      window.location.href = '/auth/kakao';
+    }
+
+    // 로그아웃
+    async function logout() {
+      try {
+        await fetch('/auth/logout');
+        window.location.reload();
+      } catch (error) {
+        console.error('로그아웃 실패:', error);
+      }
+    }
+
+    // 페이지 로드 시 로그인 상태 확인
+    document.addEventListener('DOMContentLoaded', () => {
+      checkLoginStatus();
+      // ... existing code ...
+    });
   </script>
 </body>
 </html>
