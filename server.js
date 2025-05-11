@@ -34,8 +34,8 @@ passport.deserializeUser((user, done) => {
 
 // Kakao 전략 설정
 passport.use(new KakaoStrategy({
-    clientID: 'YOUR_KAKAO_CLIENT_ID', // 카카오 개발자 센터에서 발급받은 클라이언트 ID
-    clientSecret: 'YOUR_KAKAO_CLIENT_SECRET', // 카카오 개발자 센터에서 발급받은 클라이언트 시크릿
+    clientID: '184c354ac0856bbcd8097bc8da3e805b', // 카카오 REST API 키
+    clientSecret: '', // Client Secret은 선택사항이므로 비워둡니다
     callbackURL: 'http://localhost:3000/auth/kakao/callback'
   },
   (accessToken, refreshToken, profile, done) => {
